@@ -1,0 +1,134 @@
+// Kaifa Nur Rabbi Auladana
+// 055449217
+// Sistem Informasi
+// UPBJJ Kota Bogor
+
+import java.util.*;
+
+public class BFS {
+
+    private static final Map<String, List<String>> ADJ = new HashMap<>();
+    private static final Map<String, Integer> VALUES = new HashMap<>();
+    
+    // Inisialisasi graf
+    private static void initGraph() {
+        // Node & Nilai
+        VALUES.put("a1", 10); VALUES.put("a2", 5);
+        VALUES.put("a3", 15); VALUES.put("a4", 3);
+        VALUES.put("a5", 12); VALUES.put("a6", 8);
+        VALUES.put("a7", 20); VALUES.put("a8", 7);
+
+        // Edges (Hubungan: Undirected)
+        addEdge("a1", "a2"); addEdge("a1", "a3");
+        addEdge("a2", "a4"); addEdge("a2", "a5");
+        addEdge("a3", "a6"); addEdge("a4", "a7");
+        addEdge("a5", "a7"); addEdge("a5", "a8");
+        addEdge("a6", "a8");
+    }
+
+    private static void addEdge(String u, String v) {
+        ADJ.computeIfAbsent(u, k -> new ArrayList<>()).add(v);
+        ADJ.computeIfAbsent(v, k -> new ArrayList<>()).add(u);
+    }
+    
+    private static void printGraphVisualization() {
+        System.out.println("--- VISUALISASI GRAF ---");
+        System.out.println("            a1 (10)");
+        System.out.println("           /      \\");
+        System.out.println("        a2 (5)    a3 (15)");
+        System.out.println("       /    \\        \\");
+        System.out.println("     a4 (3)  a5 (12)    a6 (8)");
+        System.out.println("       \\    / \\      /");
+        System.out.println("        \\  /   \\    /");
+        System.out.println("        a7 (20)   a8 (7)");
+        System.out.println("------------------------\n");
+    }
+
+    // Logika BFS Utama
+    private static boolean bfs(String startNode, int target) {
+        Set<String> visited = new LinkedHashSet<>();
+        Map<String, String> parent = new HashMap<>();
+        Queue<String> queue = new LinkedList<>();
+
+        queue.offer(startNode);
+        visited.add(startNode);
+        parent.put(startNode, null);
+        
+        System.out.println("\n--- PENCARIAN BFS | Start: " + startNode + ", Target: " + target + " ---\n");
+        System.out.println("Queue Awal: [" + startNode + "]\n");
+
+        int step = 0;
+        while (!queue.isEmpty()) {
+            step++;
+            String current = queue.poll();
+            
+            System.out.print("Step " + step + ": Kunjungi " + current + " (Nilai: " + VALUES.get(current) + ")");
+
+            if (VALUES.get(current) == target) {
+                System.out.println("\n*** DITEMUKAN! ***");
+                printResult(true, target, visited, parent, current);
+                return true;
+            }
+
+            List<String> neighbors = ADJ.getOrDefault(current, Collections.emptyList());
+            Collections.sort(neighbors); // Memastikan urutan konsisten
+            List<String> added = new ArrayList<>();
+
+            for (String neighbor : neighbors) {
+                if (!visited.contains(neighbor)) {
+                    queue.offer(neighbor);
+                    visited.add(neighbor);
+                    parent.put(neighbor, current);
+                    added.add(neighbor);
+                }
+            }
+            if (!added.isEmpty()) {
+                System.out.print(" | Tambah Queue: " + added);
+            }
+            System.out.println(" | Queue Sisa: " + queue + "\n");
+        }
+        
+        printResult(false, target, visited, parent, null);
+        return false;
+    }
+
+    // Mencetak hasil akhir
+    private static void printResult(boolean found, int target, Set<String> visited, Map<String, String> parent, String targetNode) {
+        System.out.println("\n--- Hasil Akhir BFS ---");
+        System.out.println("Status: " + (found ? "DITEMUKAN ✓" : "TIDAK DITEMUKAN ✗"));
+        if (found) {
+            List<String> path = reconstructPath(targetNode, parent);
+            System.out.println("Path Terpendek: " + String.join(" -> ", path));
+        }
+        System.out.println("Urutan Kunjungan: " + visited);
+        System.out.println("Total Kunjungan: " + visited.size() + " node");
+        System.out.println("-----------------------");
+    }
+
+    // Rekonstruksi Path (Membangun jalur terpendek dari parent map)
+    private static List<String> reconstructPath(String targetNode, Map<String, String> parent) {
+        List<String> path = new ArrayList<>();
+        String current = targetNode;
+        while (current != null) {
+            path.add(0, current);
+            current = parent.get(current);
+        }
+        return path;
+    }
+
+    public static void main(String[] args) {
+        initGraph();
+        final String START_NODE = "a1";
+
+        printGraphVisualization();
+
+        // Input Nilai n
+        Scanner sc = new Scanner(System.in);
+        System.out.print("Masukkan nilai n yang dicari: ");
+        int targetN = sc.nextInt();
+        sc.close();
+        
+        // Jalankan BFS
+        bfs(START_NODE, targetN);
+    }
+}
